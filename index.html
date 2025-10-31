@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFM Capital Markets Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-container">
+                <div class="logo-placeholder">AFM Logo</div>
+            </div>
+            <h1>Capital Markets Surveillance System</h1>
+            <div class="header-info">
+                <span id="currentDate"></span>
+                <span class="separator">|</span>
+                <span>Live Monitoring</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+        <button class="nav-tab" data-tab="analysis">Market Abuse Analysis</button>
+        <button class="nav-tab" data-tab="alerts">Alert Management</button>
+        <button class="nav-tab" data-tab="reports">Reports</button>
+    </nav>
+
+    <main class="main-content">
+        <!-- Dashboard Tab -->
+        <div class="tab-content active" id="dashboard">
+            <div class="control-panel">
+                <div class="control-group">
+                    <label for="tickerSelect">Select Companies/Tickers</label>
+                    <select id="tickerSelect" multiple size="8">
+                        <optgroup label="AEX Index">
+                            <option value="ASML" selected>ASML Holding N.V.</option>
+                            <option value="INGA">ING Groep N.V.</option>
+                            <option value="PHIA">Koninklijke Philips N.V.</option>
+                            <option value="SHELL">Shell plc</option>
+                            <option value="HEIA">Heineken N.V.</option>
+                        </optgroup>
+                        <optgroup label="AMX Index">
+                            <option value="ABN">ABN AMRO Bank N.V.</option>
+                            <option value="ASR">ASR Nederland N.V.</option>
+                            <option value="NN">NN Group N.V.</option>
+                            <option value="AALB">Aalberts N.V.</option>
+                        </optgroup>
+                        <optgroup label="Small Cap">
+                            <option value="BESI">BE Semiconductor Industries</option>
+                            <option value="TKA">TKH Group N.V.</option>
+                            <option value="FLOW">Flow Traders N.V.</option>
+                        </optgroup>
+                    </select>
+                    <button id="addAllBtn" class="btn-secondary">Add All Selected</button>
+                </div>
+
+                <div class="control-group">
+                    <label for="timeHorizon">Time Horizon</label>
+                    <select id="timeHorizon">
+                        <option value="1D">1 Day</option>
+                        <option value="1W">1 Week</option>
+                        <option value="1M" selected>1 Month</option>
+                        <option value="3M">3 Months</option>
+                        <option value="6M">6 Months</option>
+                        <option value="1Y">1 Year</option>
+                        <option value="YTD">Year to Date</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Detection Sensitivity</label>
+                    <div class="sensitivity-controls">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="volumeSpikes" checked>
+                            Volume Spikes (>3σ)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="priceManipulation" checked>
+                            Price Manipulation Patterns
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="insiderTrading" checked>
+                            Unusual Pre-Announcement Activity
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="spoofing">
+                            Spoofing & Layering Detection
+                        </label>
+                    </div>
+                </div>
+
+                <button id="analyzeBtn" class="btn-primary">Run Analysis</button>
+            </div>
+
+            <div class="monitoring-grid">
+                <div class="card">
+                    <h3>Active Monitoring</h3>
+                    <div id="activeTickersList" class="ticker-list">
+                        <div class="ticker-item">
+                            <span class="ticker-symbol">ASML</span>
+                            <span class="ticker-status status-normal">Normal</span>
+                            <button class="btn-remove" data-ticker="ASML">×</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Market Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Volume</span>
+                            <span class="stat-value" id="totalVolume">€2.4B</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Active Alerts</span>
+                            <span class="stat-value alert-value" id="activeAlerts">3</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Flagged Events</span>
+                            <span class="stat-value" id="flaggedEvents">7</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Monitoring</span>
+                            <span class="stat-value" id="monitoringCount">1 ticker</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Price & Volume Analysis</h3>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-chart="price">Price</button>
+                            <button class="chart-btn" data-chart="volume">Volume</button>
+                            <button class="chart-btn" data-chart="combined">Combined</button>
+                        </div>
+                    </div>
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+
+            <div class="alerts-summary">
+                <div class="card">
+                    <h3>Recent Suspicious Activity</h3>
+                    <div id="alertsList" class="alerts-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Market Abuse Analysis Tab -->
+        <div class="tab-content" id="analysis">
+            <div class="analysis-grid">
+                <div class="card">
+                    <h3>Detected Anomalies</h3>
+                    <div id="anomaliesList" class="anomalies-list"></div>
+                </div>
+
+                <div class="card">
+                    <h3>Pattern Recognition</h3>
+                    <canvas id="patternChart"></canvas>
+                </div>
+
+                <div class="card full-width">
+                    <h3>Timeline Analysis</h3>
+                    <div id="timeline" class="timeline"></div>
+                </div>
+
+                <div class="card">
+                    <h3>Risk Scoring</h3>
+                    <div id="riskScores" class="risk-scores"></div>
+                </div>
+
+                <div class="card">
+                    <h3>Correlation Matrix</h3>
+                    <div id="correlationMatrix" class="correlation-matrix"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Tab -->
+        <div class="tab-content" id="alerts">
+            <div class="alerts-management">
+                <div class="card">
+                    <h3>Alert Configuration</h3>
+                    <div class="alert-config-form">
+                        <div class="form-group">
+                            <label>Alert Type</label>
+                            <select id="alertType">
+                                <option value="volume">Volume Spike</option>
+                                <option value="price">Price Manipulation</option>
+                                <option value="insider">Insider Trading Pattern</option>
+                                <option value="spoofing">Spoofing Detection</option>
+                                <option value="crossTrade">Cross-Trade Detection</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Threshold</label>
+                            <input type="number" id="alertThreshold" value="3" step="0.5" min="1" max="10">
+                            <span class="help-text">Standard deviations from mean</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Notification Method</label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked> Email
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox"> Dashboard Only
+                            </label>
+                        </div>
+                        <button class="btn-primary">Save Alert Configuration</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Active Alerts</h3>
+                    <div id="activeAlertsList" class="active-alerts-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div class="tab-content" id="reports">
+            <div class="reports-section">
+                <div class="card">
+                    <h3>Generate Report</h3>
+                    <div class="report-form">
+                        <div class="form-group">
+                            <label>Report Type</label>
+                            <select id="reportType">
+                                <option value="daily">Daily Surveillance Report</option>
+                                <option value="weekly">Weekly Summary</option>
+                                <option value="investigation">Investigation Report</option>
+                                <option value="compliance">Compliance Report</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date Range</label>
+                            <div class="date-range">
+                                <input type="date" id="reportStartDate">
+                                <span>to</span>
+                                <input type="date" id="reportEndDate">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Include</label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked> Charts & Visualizations
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked> Detailed Analysis
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox"> Raw Data Export
+                            </label>
+                        </div>
+                        <button class="btn-primary" id="generateReportBtn">Generate Report</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Recent Reports</h3>
+                    <div id="recentReports" class="recent-reports"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <p>Autoriteit Financiële Markten (AFM)</p>
+                <p class="footer-small">Capital Markets Surveillance System v2.1</p>
+            </div>
+            <div class="footer-section">
+                <div class="partner-logos">
+                    <div class="logo-placeholder small">Partner Logo 1</div>
+                    <div class="logo-placeholder small">Partner Logo 2</div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
